@@ -41,3 +41,8 @@ export interface UserStats {
     backgroundColor: string;
   };
 }
+
+export interface UserCredentials {
+  username: string;
+  password: string; // NOTE: In a real-world app, this would be a securely hashed password.
+}

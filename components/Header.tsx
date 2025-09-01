@@ -5,14 +5,16 @@ import { ChartBarIcon } from './icons/ChartBarIcon';
 import { PlusIcon } from './icons/PlusIcon';
 import { StoreIcon } from './icons/StoreIcon';
 import { UserIcon } from './icons/UserIcon';
+import { LogoutIcon } from './icons/LogoutIcon';
 
 interface HeaderProps {
   onAddHabit: () => void;
+  onLogout: () => void;
   currentView: View;
   setCurrentView: (view: View) => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onAddHabit, currentView, setCurrentView }) => {
+export const Header: React.FC<HeaderProps> = ({ onAddHabit, onLogout, currentView, setCurrentView }) => {
   const NavButton: React.FC<{
     view: View;
     label: string;
@@ -44,13 +46,22 @@ export const Header: React.FC<HeaderProps> = ({ onAddHabit, currentView, setCurr
           <NavButton view="store" label="Store" icon={<StoreIcon />} />
           <NavButton view="user" label="User" icon={<UserIcon />} />
         </nav>
-        <button
-          onClick={onAddHabit}
-          className="flex items-center gap-2 bg-primary text-primary-content font-bold py-2 px-4 rounded-lg hover:bg-primary-focus transition-all shadow-sm"
-        >
-          <PlusIcon />
-          <span className="hidden sm:inline">New Habit</span>
-        </button>
+        <div className="flex items-center gap-2">
+            <button
+            onClick={onAddHabit}
+            className="flex items-center gap-2 bg-primary text-primary-content font-bold py-2 px-4 rounded-lg hover:bg-primary-focus transition-all shadow-sm"
+            >
+            <PlusIcon />
+            <span className="hidden sm:inline">New Habit</span>
+            </button>
+             <button
+                onClick={onLogout}
+                className="flex items-center gap-2 bg-base-300 text-neutral font-bold py-2 px-4 rounded-lg hover:bg-gray-300 transition-all"
+                aria-label="Logout"
+                >
+                <LogoutIcon />
+            </button>
+        </div>
       </div>
     </header>
   );

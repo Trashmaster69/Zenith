@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import type { Habit, Log, StoreItem, UserStats } from './types';
-import { Frequency } from './types';
+import type { Habit, Log, StoreItem, UserStats, UserCredentials } from './types';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { getTodayDateString } from './utils/habits';
 import { Header } from './components/Header';
@@ -9,28 +8,30 @@ import { Dashboard } from './components/Dashboard';
 import { Analytics } from './components/Analytics';
 import { Store } from './components/Store';
 import { User } from './components/User';
+import { Auth } from './components/Auth';
 import { v4 as uuidv4 } from 'uuid';
 
 export type View = 'dashboard' | 'analytics' | 'store' | 'user';
 
-const initialUserStats: UserStats = {
-  username: 'Zenith Seeker',
-  level: 1,
-  xp: 0,
-  intelligence: 5,
-  strength: 5,
-  chi: 5,
-  charisma: 5,
-  avatar: {
-    backgroundColor: '#6366f1', // Indigo 500
-  },
-};
+const MainApp: React.FC<{ user: UserCredentials; onLogout: () => void }> = ({ user, onLogout }) => {
+  
+  const getInitialUserStats = (username: string): UserStats => ({
+    username: username,
+    level: 1,
+    xp: 0,
+    intelligence: 5,
+    strength: 5,
+    chi: 5,
+    charisma: 5,
+    avatar: {
+      backgroundColor: '#6366f1', // Indigo 500
+    },
+  });
 
-const App: React.FC = () => {
-  const [habits, setHabits] = useLocalStorage<Habit[]>('habits', []);
-  const [coinBalance, setCoinBalance] = useLocalStorage<number>('coinBalance', 500);
-  const [inventory, setInventory] = useLocalStorage<string[]>('inventory', []);
-  const [userStats, setUserStats] = useLocalStorage<UserStats>('userStats', initialUserStats);
+  const [habits, setHabits] = useLocalStorage<Habit[]>(`habits_${user.username}`, []);
+  const [coinBalance, setCoinBalance] = useLocalStorage<number>(`coinBalance_${user.username}`, 500);
+  const [inventory, setInventory] = useLocalStorage<string[]>(`inventory_${user.username}`, []);
+  const [userStats, setUserStats] = useLocalStorage<UserStats>(`userStats_${user.username}`, getInitialUserStats(user.username));
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentView, setCurrentView] = useState<View>('dashboard');
 
@@ -110,6 +111,7 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-base-200 text-neutral font-sans">
       <Header 
         onAddHabit={() => setIsModalOpen(true)}
+        onLogout={onLogout}
         currentView={currentView}
         setCurrentView={setCurrentView}
       />
@@ -141,5 +143,41 @@ const App: React.FC = () => {
     </div>
   );
 };
+
+
+const App: React.FC = () => {
+    const [users, setUsers] = useLocalStorage<UserCredentials[]>('zenith_users', []);
+    const [currentUser, setCurrentUser] = useLocalStorage<UserCredentials | null>('zenith_currentUser', null);
+
+    const handleLogin = (credentials: UserCredentials): boolean => {
+        const user = users.find(u => u.username === credentials.username && u.password === credentials.password);
+        if(user) {
+            setCurrentUser(user);
+            return true;
+        }
+        return false;
+    };
+
+    const handleSignup = (credentials: UserCredentials): boolean => {
+        const userExists = users.some(u => u.username === credentials.username);
+        if(userExists) {
+            return false;
+        }
+        setUsers(prev => [...prev, credentials]);
+        setCurrentUser(credentials);
+        return true;
+    };
+
+    const handleLogout = () => {
+        setCurrentUser(null);
+    };
+
+    if(!currentUser) {
+        return <Auth onLogin={handleLogin} onSignup={handleSignup} />;
+    }
+
+    return <MainApp user={currentUser} onLogout={handleLogout} />;
+};
+
 
 export default App;
